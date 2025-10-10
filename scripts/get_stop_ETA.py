@@ -1,68 +1,76 @@
 import os
-import requests
-import yaml
 import curses
+import threading
 import time
-from datetime import datetime, timezone
+from bus_eta import fetch_bus_data, parse_eta, get_bus_urls
+from zoneinfo import ZoneInfo 
+from datetime import datetime
+
+def fetch_all_bus_data(urls, now, shared_data, lock, refresh_interval=60):
+    """Background thread: fetch bus data and update shared_data."""
+    while True:
+        new_results = []
+        for url in urls:
+            try:
+                data = fetch_bus_data(url)
+                buses = data.get('data', [])
+                if not buses:
+                    new_results.append(("No bus data available.", False))
+                for bus in buses:
+                    result = parse_eta(bus, now)
+                    is_arriving = "min till arrival" in result
+                    new_results.append((result, is_arriving))
+            except Exception:
+                new_results.append(("Error fetching or parsing data.", False))
+        with lock:
+            shared_data.clear()
+            shared_data.extend(new_results)
+        time.sleep(refresh_interval)
 
 def main(stdscr):
     curses.start_color()
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)  # Green text
     curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)    # Red text
-    # Read bus ETA URLs from YAML file
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    yaml_path = os.path.join(script_dir, '../conf/bus_routs.yaml')
-    with open(yaml_path, 'r') as f:
-        bus_routes = yaml.safe_load(f)
 
-    urls = []
-    for key, value in bus_routes.items():
-        urls.append(f"https://data.etabus.gov.hk/v1/transport/kmb/eta/{value}")
-    
+    refresh_rate = 30  # seconds
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    yaml_path = os.path.join(script_dir, '../conf/bus_routes.yaml')
+    urls = get_bus_urls(yaml_path)
+
+    shared_data = []
+    lock = threading.Lock()
+
+    # Start background thread to fetch data
+    thread = threading.Thread(
+        target=fetch_all_bus_data,
+        args=(urls, datetime.now(ZoneInfo("Asia/Hong_Kong")), shared_data, lock),
+        kwargs={'refresh_interval': refresh_rate},
+        daemon=True
+    )
+    thread.start()
+
     while True:
         stdscr.clear()
-        display_idx = 1
-        for url in urls:
-            try:
-                response = requests.get(url, timeout=10)
-                response.raise_for_status()
-                data = response.json()
-                buses = data.get('data', [])
-                if not buses:
-                    stdscr.addstr(display_idx, 0, "No bus data available.", curses.color_pair(2) | curses.A_BOLD)
+        now = datetime.now(ZoneInfo("Asia/Hong_Kong"))
+        stdscr.addstr(0, 0, "KMB Bus ETA Viewer", curses.A_BOLD | curses.color_pair(1))
+        stdscr.addstr(0, 30, now.strftime("%H:%M:%S"), curses.A_DIM)
+        stdscr.addstr(1, 0, f"Press ctrl + c to exit. Data refreshes every {refresh_rate} seconds.", curses.A_DIM)
+        stdscr.addstr(2, 0, "=" * 50, curses.color_pair(1))
+        display_idx = 4
+
+        with lock:
+            if not shared_data:
+                stdscr.addstr(display_idx, 2, "Loading data...", curses.A_DIM)
+            else:
+                for result, is_arriving in shared_data:
+                    color = curses.color_pair(1) | curses.A_BOLD if is_arriving else curses.color_pair(2) | curses.A_BOLD
+                    stdscr.addstr(display_idx, 2, result, color)
                     display_idx += 1
-                for bus in buses:
-                    route = bus.get('route', 'Unknown')
-                    eta = bus.get('eta')
-                    if eta:
-                        try:
-                            eta_dt = datetime.fromisoformat(eta.replace('Z', '+00:00'))
-                            now = datetime.now(timezone.utc)
-                            minutes = int((eta_dt - now).total_seconds() // 60)
-                            if minutes >= 0:
-                                stdscr.addstr(display_idx, 0, f"{route}: ", curses.color_pair(1) | curses.A_BOLD)
-                                stdscr.addstr(f"{minutes} min till arrival", curses.A_NORMAL)
-                            else:
-                                stdscr.addstr(display_idx, 0, f"{route}: Arrived ({eta})")
-                        except Exception:
-                            stdscr.addstr(display_idx, 0, f"{route}: Next arrival at {eta}")
-                    else:
-                        stdscr.addstr(display_idx, 0, f"{route}: Arrival time not available")
-                    display_idx += 1
-            except requests.exceptions.ConnectionError as e:
-                # stdscr.addstr(display_idx, 0, "Connection error: Connection reset by peer", curses.color_pair(2) | curses.A_BOLD)
-                display_idx += 1
-            except requests.RequestException as e:
-                # stdscr.addstr(display_idx, 0, f"Request error: {str(e)}", curses.color_pair(2) | curses.A_BOLD)
-                display_idx += 1
-            except Exception as e:
-                # stdscr.addstr(display_idx, 0, f"Data error: {str(e)}", curses.color_pair(2) | curses.A_BOLD)
-                display_idx += 1
+
         stdscr.refresh()
-        stdscr.timeout(10000)  # 10000 ms = 10 seconds
+        stdscr.timeout(1000)  # Check for key every second
         key = stdscr.getch()
-        if key != -1:
-            break
-        stdscr.getch()
+        # if key != -1:
+        #     break
 
 curses.wrapper(main)
