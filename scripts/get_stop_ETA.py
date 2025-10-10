@@ -34,7 +34,7 @@ def main(stdscr):
 
     refresh_rate = 30  # seconds
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    yaml_path = os.path.join(script_dir, '../conf/bus_routes.yaml')
+    yaml_path = os.path.join(script_dir, '../config/bus_routes.yaml')
     urls = get_bus_urls(yaml_path)
 
     shared_data = []

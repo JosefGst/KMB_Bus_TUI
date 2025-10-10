@@ -1,6 +1,7 @@
 # KMB Bus ETA TUI
 
 TUI to display real-time bus arrival information for KMB buses in Hong Kong. Add new Routes in `conf/bus_routes.yaml`.
+
 ![TUI Screenshot](assets/TUI.png)
 
 ## Usage
