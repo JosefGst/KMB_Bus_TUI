@@ -1,0 +1,23 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+*.egg-info/
+.eggs/
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# IDE-specific files
+.idea/
+.vscode/
+
+# Logs and database
+*.log
+*.sqlite3
+
+# Temporary files
+*.tmp
