@@ -32,15 +32,17 @@ def main(stdscr):
                 display_idx += 1
             for bus in buses:
                 result = parse_eta(bus, now)
-                is_arriving = "min till arrival" in result
-                color = curses.color_pair(1) if is_arriving else curses.color_pair(2)
-                stdscr.addstr(display_idx, 0, result, color)
+                if result[1]: 
+                    stdscr.addstr(display_idx, 0, f"{result[0]}: ", curses.A_BOLD)
+                    stdscr.addstr(str(result[1]), curses.color_pair(1) | curses.A_BOLD)
+                    stdscr.addstr(" min till arrival")
+                else:
+                    stdscr.addstr(display_idx, 0, f"{result[0]}: Not available", curses.color_pair(2))
                 display_idx += 1
-            # display_idx += 1  # Extra space between different URLs
 
         stdscr.refresh()
         stdscr.timeout(1000)  # Check for key every second
-        key = stdscr.getch()
+        # key = stdscr.getch()
         # if key != -1:
         #     break
 

@@ -13,17 +13,11 @@ def parse_eta(bus, now=None):
     if not now:
         now = datetime.now(ZoneInfo("Asia/Hong_Kong"))
     if eta:
-        try:
-            eta_dt = datetime.fromisoformat(eta.replace('Z', '+00:00'))
-            minutes = int((eta_dt - now).total_seconds() // 60)
-            if minutes >= 0:
-                return f"{route}: {minutes} min till arrival"
-            else:
-                return f"{route}: Arrived"
-        except Exception:
-            return f"{route}: Next arrival at {eta}"
+        eta_dt = datetime.fromisoformat(eta.replace('Z', '+00:00'))
+        minutes = int((eta_dt - now).total_seconds() // 60)
+        return route, minutes
     else:
-        return f"{route}: Arrival time not available"
+        return route, False
 
 def get_bus_urls(yaml_path):
     import yaml, os
