@@ -2,8 +2,8 @@ import requests
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-def fetch_bus_data(url):
-    response = requests.get(url, timeout=30)
+def fetch_bus_data(url, timeout=30):
+    response = requests.get(url, timeout=timeout)
     response.raise_for_status()
     return response.json()
 

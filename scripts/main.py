@@ -1,0 +1,47 @@
+import os
+import curses
+from bus_eta import fetch_bus_data, parse_eta, get_bus_urls
+from zoneinfo import ZoneInfo 
+from datetime import datetime
+
+
+def main(stdscr):
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)  # Green text
+    curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)    # Red text
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    yaml_path = os.path.join(script_dir, '../config/bus_routes.yaml')
+    urls = get_bus_urls(yaml_path)
+
+
+    while True:
+        stdscr.clear()
+        now = datetime.now(ZoneInfo("Asia/Hong_Kong"))
+        stdscr.addstr(0, 0, "KMB Bus ETA Viewer", curses.A_BOLD)
+        stdscr.addstr(0, 20, now.strftime("%H:%M:%S"), curses.A_DIM)
+        stdscr.addstr(1, 0, "=" * 30)
+        display_idx = 2
+
+        urls = get_bus_urls(yaml_path)
+        for url in urls:
+            data = fetch_bus_data(url)
+            buses = data.get('data', [])
+            if not buses:
+                stdscr.addstr(display_idx, 0, "No bus data available.", curses.A_DIM)
+                display_idx += 1
+            for bus in buses:
+                result = parse_eta(bus, now)
+                is_arriving = "min till arrival" in result
+                color = curses.color_pair(1) if is_arriving else curses.color_pair(2)
+                stdscr.addstr(display_idx, 0, result, color)
+                display_idx += 1
+            # display_idx += 1  # Extra space between different URLs
+
+        stdscr.refresh()
+        stdscr.timeout(1000)  # Check for key every second
+        key = stdscr.getch()
+        # if key != -1:
+        #     break
+
+curses.wrapper(main)
