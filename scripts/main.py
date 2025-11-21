@@ -26,6 +26,10 @@ def main(stdscr):
         urls = get_bus_urls(yaml_path)
         for url in urls:
             data = fetch_bus_data(url)
+            if data is None:
+                stdscr.addstr(display_idx, 0, "Connection error. Could not fetch bus data.", curses.color_pair(2) | curses.A_BOLD)
+                display_idx += 1
+                continue
             buses = data.get('data', [])
             if not buses:
                 stdscr.addstr(display_idx, 0, "No bus data available.", curses.A_DIM)
