@@ -1,17 +1,17 @@
 import os
 import curses
-from bus_eta import fetch_bus_data, parse_eta, get_bus_urls
+from kmb_bus_tui.bus_eta import fetch_bus_data, parse_eta, get_bus_urls
 from zoneinfo import ZoneInfo 
 from datetime import datetime
 
 
-def main(stdscr):
+def _run(stdscr):
     curses.start_color()
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)  # Green text
     curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)    # Red text
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    yaml_path = os.path.join(script_dir, '../config/bus_routes.yaml')
+    yaml_path = os.path.join(script_dir, '../../config/bus_routes.yaml')
     urls = get_bus_urls(yaml_path)
 
 
@@ -50,4 +50,6 @@ def main(stdscr):
         # if key != -1:
         #     break
 
-curses.wrapper(main)
+
+def main() -> None:
+    curses.wrapper(_run)
