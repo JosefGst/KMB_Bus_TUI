@@ -1,0 +1,24 @@
+name: kmb-bus-tui
+version: '0.1.0'
+summary: Real-time KMB bus arrival TUI for Hong Kong
+description: |
+  A terminal UI (curses) that shows live bus arrival ETAs for KMB buses in
+  Hong Kong, fetched from the data.gov.hk KMB ETA API. Routes are configured
+  in a small YAML file that's editable after install.
+
+base: core24
+confinement: strict
+grade: stable
+
+apps:
+  kmb-bus-tui:
+    command: bin/kmb-bus-tui
+    plugs:
+      - network        # outbound HTTPS calls to data.etabus.gov.hk
+
+parts:
+  kmb-bus-tui:
+    plugin: python
+    source: .
+    stage-packages:
+      - libncursesw6    # curses needs the ncurses runtime library

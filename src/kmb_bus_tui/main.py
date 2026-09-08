@@ -1,7 +1,6 @@
-import os
 import curses
-from kmb_bus_tui.bus_eta import fetch_bus_data, parse_eta, get_bus_urls
-from zoneinfo import ZoneInfo 
+from kmb_bus_tui.bus_eta import fetch_bus_data, parse_eta, get_bus_urls, get_config_path
+from zoneinfo import ZoneInfo
 from datetime import datetime
 
 
@@ -10,8 +9,7 @@ def _run(stdscr):
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)  # Green text
     curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)    # Red text
 
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    yaml_path = os.path.join(script_dir, '../../config/bus_routes.yaml')
+    yaml_path = get_config_path()
     stdscr.timeout(1000)  # getch() below blocks up to 1s, pacing the refresh loop
 
     while True:
@@ -20,8 +18,9 @@ def _run(stdscr):
         stdscr.addstr(0, 0, "KMB Bus ETA Viewer", curses.A_BOLD)
         stdscr.addstr(0, 20, now.strftime("%H:%M:%S"), curses.A_DIM)
         stdscr.addstr(0, 30, "(q to quit)", curses.A_DIM)
-        stdscr.addstr(1, 0, "=" * 30)
-        display_idx = 2
+        stdscr.addstr(1, 0, f"Routes: {yaml_path}", curses.A_DIM)
+        stdscr.addstr(2, 0, "=" * 30)
+        display_idx = 3
 
         urls = get_bus_urls(yaml_path)
         for url in urls:
