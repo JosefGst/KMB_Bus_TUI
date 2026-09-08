@@ -3,9 +3,12 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 def fetch_bus_data(url, timeout=30):
-    response = requests.get(url, timeout=timeout)
-    response.raise_for_status()
-    return response.json()
+    try:
+        response = requests.get(url, timeout=timeout)
+        response.raise_for_status()
+        return response.json()
+    except (requests.exceptions.RequestException, ValueError):
+        return None
 
 def parse_eta(bus, now=None):
     route = bus.get('route', 'Unknown')

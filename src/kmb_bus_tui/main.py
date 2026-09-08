@@ -12,14 +12,14 @@ def _run(stdscr):
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     yaml_path = os.path.join(script_dir, '../../config/bus_routes.yaml')
-    urls = get_bus_urls(yaml_path)
-
+    stdscr.timeout(1000)  # getch() below blocks up to 1s, pacing the refresh loop
 
     while True:
         stdscr.clear()
         now = datetime.now(ZoneInfo("Asia/Hong_Kong"))
         stdscr.addstr(0, 0, "KMB Bus ETA Viewer", curses.A_BOLD)
         stdscr.addstr(0, 20, now.strftime("%H:%M:%S"), curses.A_DIM)
+        stdscr.addstr(0, 30, "(q to quit)", curses.A_DIM)
         stdscr.addstr(1, 0, "=" * 30)
         display_idx = 2
 
@@ -45,10 +45,9 @@ def _run(stdscr):
                 display_idx += 1
 
         stdscr.refresh()
-        stdscr.timeout(1000)  # Check for key every second
-        # key = stdscr.getch()
-        # if key != -1:
-        #     break
+        key = stdscr.getch()  # blocks up to 1s (see stdscr.timeout above), then loops
+        if key in (ord('q'), ord('Q')):
+            break
 
 
 def main() -> None:
