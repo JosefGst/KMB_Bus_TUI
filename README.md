@@ -7,6 +7,22 @@ A TUI to display real-time bus arrival information for KMB buses in Hong Kong.
 ## API Documentation  
 https://data.etabus.gov.hk/datagovhk/kmb_eta_api_specification.pdf
 
+## Installation
+
+```
+sudo snap install kmb-bus-tui --edge
+```
+
+## Run
+
+```
+kmb-bus-tui
+```
+
+---
+
+# Development
+
 ## Usage
 
 1. Find the Bus Stop ID from https://data.etabus.gov.hk/v1/transport/kmb/stop and search for your bus stop.
@@ -44,8 +60,9 @@ Publishing to the Snap Store (optional): `snapcraft register kmb-bus-tui`, then 
 
 `.github/workflows/ci.yml` runs on every push/PR to `main`:
 
-1. **Run tests** — installs dependencies with `uv` and runs the test suite
-2. **Build snap** — on a release tag, syncs `pyproject.toml`'s version to match; then builds the snap with `snapcraft` and uploads it as a workflow artifact, so a built snap is always downloadable from the Actions run.
+1. **Run tests** 
+2. **Build snap** 
+3. **Publish snap at snap store**
 
 ### Releasing to the Snap Store
 
