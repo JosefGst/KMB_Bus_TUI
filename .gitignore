@@ -21,3 +21,6 @@ venv/
 
 # Temporary files
 *.tmp
+
+# Build artifacts
+*.snap
