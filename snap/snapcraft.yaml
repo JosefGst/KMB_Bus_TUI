@@ -1,5 +1,5 @@
 name: kmb-bus-tui
-version: '0.1.0'
+adopt-info: kmb-bus-tui   # version is set from the git tag, see override-pull below
 summary: Real-time KMB bus arrival TUI for Hong Kong
 description: |
   A terminal UI (curses) that shows live bus arrival ETAs for KMB buses in
@@ -22,3 +22,6 @@ parts:
     source: .
     stage-packages:
       - libncursesw6    # curses needs the ncurses runtime library
+    override-pull: |
+      craftctl default
+      craftctl set version="$(git -C "$CRAFT_PART_SRC" describe --tags --always | sed 's/^v//')"

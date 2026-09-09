@@ -1,7 +1,13 @@
 import curses
+from importlib.metadata import version, PackageNotFoundError
 from kmb_bus_tui.bus_eta import fetch_bus_data, parse_eta, get_bus_urls, get_config_path
 from zoneinfo import ZoneInfo
 from datetime import datetime
+
+try:
+    __version__ = version("kmb-bus-tui")
+except PackageNotFoundError:
+    __version__ = "unknown"
 
 
 def _run(stdscr):
@@ -15,9 +21,11 @@ def _run(stdscr):
     while True:
         stdscr.clear()
         now = datetime.now(ZoneInfo("Asia/Hong_Kong"))
-        stdscr.addstr(0, 0, "KMB Bus ETA Viewer", curses.A_BOLD)
-        stdscr.addstr(0, 20, now.strftime("%H:%M:%S"), curses.A_DIM)
-        stdscr.addstr(0, 30, "(q to quit)", curses.A_DIM)
+        title = f"KMB Bus ETA Viewer v{__version__}"
+        stdscr.addstr(0, 0, title, curses.A_BOLD)
+        clock_x = len(title) + 2
+        stdscr.addstr(0, clock_x, now.strftime("%H:%M:%S"), curses.A_DIM)
+        stdscr.addstr(0, clock_x + 10, "(q to quit)", curses.A_DIM)
         stdscr.addstr(1, 0, f"Routes: {yaml_path}", curses.A_DIM)
         stdscr.addstr(2, 0, "=" * 30)
         display_idx = 3

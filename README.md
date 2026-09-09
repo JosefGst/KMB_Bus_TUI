@@ -22,13 +22,13 @@ https://data.etabus.gov.hk/datagovhk/kmb_eta_api_specification.pdf
 
 ## Building the snap
 
-The project ships a `snap/snapcraft.yaml` (strict confinement, `core24` base, `network` plug only — routes are stored under `$SNAP_USER_COMMON`, so no `home` interface is needed).
+The project ships a `snap/snapcraft.yaml` (strict confinement, `core24` base, `network` plug only — routes are stored under `$SNAP_USER_COMMON`, so no `home` interface is needed). The snap version is derived from `git describe --tags` at build time (e.g. tag `v0.1.1` → snap version `0.1.1`; untagged builds fall back to a short commit hash), so there's no version to bump by hand. CI additionally syncs `pyproject.toml`'s `version` to the same value before building, so the version shown in the running TUI's title bar matches the snap it shipped in.
 
 ```bash
 sudo snap install snapcraft --classic   # if snapcraft isn't installed yet
 cd KMB_Bus_TUI
-snapcraft                               # builds ./kmb-bus-tui_0.1.0_amd64.snap
-sudo snap install --dangerous ./kmb-bus-tui_0.1.0_amd64.snap   # --dangerous = unsigned local build
+snapcraft                               # builds ./kmb-bus-tui_<version>_amd64.snap
+sudo snap install --dangerous ./kmb-bus-tui_*_amd64.snap   # --dangerous = unsigned local build
 kmb-bus-tui
 ```
 
@@ -38,14 +38,14 @@ Useful while iterating:
 - `sudo snap remove kmb-bus-tui` — uninstall a test build.
 - Routes file when running as a snap: `~/snap/kmb-bus-tui/common/bus_routes.yaml`.
 
-Publishing to the Snap Store (optional): `snapcraft register kmb-bus-tui`, then `snapcraft upload ./kmb-bus-tui_0.1.0_amd64.snap`.
+Publishing to the Snap Store (optional): `snapcraft register kmb-bus-tui`, then `snapcraft upload ./kmb-bus-tui_<version>_amd64.snap`.
 
 ## Continuous integration
 
 `.github/workflows/ci.yml` runs on every push/PR to `main`:
 
-1. **Run tests** — installs dependencies with `uv` and runs the test suite (`uv run pytest src/kmb_bus_tui/test_bus_eta.py`).
-2. **Build snap** — builds the snap with `snapcraft` (via `snapcore/action-build`) and uploads it as a workflow artifact, so a built snap is always downloadable from the Actions run.
+1. **Run tests** — installs dependencies with `uv` and runs the test suite
+2. **Build snap** — syncs `pyproject.toml`'s version from `git describe`, builds the snap with `snapcraft`, and uploads it as a workflow artifact, so a built snap is always downloadable from the Actions run.
 
 ### Releasing to the Snap Store
 
