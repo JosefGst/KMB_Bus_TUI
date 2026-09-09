@@ -22,7 +22,7 @@ https://data.etabus.gov.hk/datagovhk/kmb_eta_api_specification.pdf
 
 ## Building the snap
 
-The project ships a `snap/snapcraft.yaml` (strict confinement, `core24` base, `network` plug only — routes are stored under `$SNAP_USER_COMMON`, so no `home` interface is needed). The snap version is derived from `git describe --tags` at build time (e.g. tag `v0.1.1` → snap version `0.1.1`; untagged builds fall back to a short commit hash), so there's no version to bump by hand. CI additionally syncs `pyproject.toml`'s `version` to the same value before building, so the version shown in the running TUI's title bar matches the snap it shipped in.
+The project ships a `snap/snapcraft.yaml` (strict confinement, `core24` base, `network` plug only — routes are stored under `$SNAP_USER_COMMON`, so no `home` interface is needed). The snap's version is read from `pyproject.toml`'s `version` field at build time. When CI builds from a release tag (e.g. `v0.1.1`), it first rewrites `pyproject.toml`'s version to match the tag, so the snap version, the installed package version, and the version shown in the running TUI's title bar all agree. A plain local `snapcraft` build (or an untagged CI build) just uses whatever version is currently committed in `pyproject.toml`.
 
 ```bash
 sudo snap install snapcraft --classic   # if snapcraft isn't installed yet
@@ -45,7 +45,7 @@ Publishing to the Snap Store (optional): `snapcraft register kmb-bus-tui`, then 
 `.github/workflows/ci.yml` runs on every push/PR to `main`:
 
 1. **Run tests** — installs dependencies with `uv` and runs the test suite
-2. **Build snap** — syncs `pyproject.toml`'s version from `git describe`, builds the snap with `snapcraft`, and uploads it as a workflow artifact, so a built snap is always downloadable from the Actions run.
+2. **Build snap** — on a release tag, syncs `pyproject.toml`'s version to match; then builds the snap with `snapcraft` and uploads it as a workflow artifact, so a built snap is always downloadable from the Actions run.
 
 ### Releasing to the Snap Store
 
