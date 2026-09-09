@@ -2,6 +2,8 @@
 
 A TUI to display real-time bus arrival information for KMB buses in Hong Kong.  
 
+[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/kmb-bus-tui)
+
 ![TUI Screenshot](assets/TUI.png)
 
 ## API Documentation  
