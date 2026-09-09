@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -46,3 +47,25 @@ jobs:
         with:
           name: kmb-bus-tui-snap
           path: ${{ steps.snapcraft.outputs.snap }}
+
+    outputs:
+      snap: ${{ steps.snapcraft.outputs.snap }}
+
+  publish-snap:
+    name: Publish to Snap Store
+    needs: build-snap
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download snap artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kmb-bus-tui-snap
+
+      - name: Publish to edge channel
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ needs.build-snap.outputs.snap }}
+          release: edge

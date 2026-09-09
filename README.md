@@ -4,14 +4,14 @@ A TUI to display real-time bus arrival information for KMB buses in Hong Kong.
 
 ![TUI Screenshot](assets/TUI.png)
 
-## 📄 API Documentation  
+## API Documentation  
 https://data.etabus.gov.hk/datagovhk/kmb_eta_api_specification.pdf
 
-## 🚀 Usage
+## Usage
 
-1. 🔍 Find the Bus Stop ID from https://data.etabus.gov.hk/v1/transport/kmb/stop and search for your bus stop.
-2. ▶️ Run `uv run kmb-bus-tui` to start the TUI.
-3. ✏️ Edit your routes file to add bus routes and stop IDs:
+1. Find the Bus Stop ID from https://data.etabus.gov.hk/v1/transport/kmb/stop and search for your bus stop.
+2. Run `uv run kmb-bus-tui` to start the TUI.
+3. Edit your routes file to add bus routes and stop IDs:
    - Normally: `~/.config/kmb-bus-tui/bus_routes.yaml`
    - When installed as a snap: `$SNAP_USER_COMMON/bus_routes.yaml` (e.g. `~/snap/kmb-bus-tui/common/bus_routes.yaml`)
 
@@ -20,7 +20,7 @@ https://data.etabus.gov.hk/datagovhk/kmb_eta_api_specification.pdf
 
    The running TUI also shows the active routes-file path at the top of the screen.
 
-## 📦 Building the snap
+## Building the snap
 
 The project ships a `snap/snapcraft.yaml` (strict confinement, `core24` base, `network` plug only — routes are stored under `$SNAP_USER_COMMON`, so no `home` interface is needed).
 
@@ -39,3 +39,28 @@ Useful while iterating:
 - Routes file when running as a snap: `~/snap/kmb-bus-tui/common/bus_routes.yaml`.
 
 Publishing to the Snap Store (optional): `snapcraft register kmb-bus-tui`, then `snapcraft upload ./kmb-bus-tui_0.1.0_amd64.snap`.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on every push/PR to `main`:
+
+1. **Run tests** — installs dependencies with `uv` and runs the test suite (`uv run pytest src/kmb_bus_tui/test_bus_eta.py`).
+2. **Build snap** — builds the snap with `snapcraft` (via `snapcore/action-build`) and uploads it as a workflow artifact, so a built snap is always downloadable from the Actions run.
+
+### Releasing to the Snap Store
+
+Pushing a tag matching `v*` (e.g. `v0.1.1`) additionally triggers a **Publish to Snap Store** job, which publishes the built snap to the `edge` channel:
+
+```bash
+git tag v0.1.1
+git push origin v0.1.1
+```
+
+This requires a one-time setup of the `SNAPCRAFT_STORE_CREDENTIALS` repo secret:
+
+```bash
+snapcraft register kmb-bus-tui   # only needed once, if not already registered
+snapcraft export-login --snaps=kmb-bus-tui --channels=edge,beta,candidate,stable exported-login.txt
+```
+
+Add the contents of `exported-login.txt` as a GitHub Actions secret named `SNAPCRAFT_STORE_CREDENTIALS` (repo Settings → Secrets and variables → Actions → New repository secret), then delete the local file — it contains live store credentials.
