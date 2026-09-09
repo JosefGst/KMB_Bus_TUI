@@ -1,5 +1,5 @@
 name: kmb-bus-tui
-adopt-info: kmb-bus-tui   # version is set from the git tag, see override-pull below
+adopt-info: kmb-bus-tui   # version is read from pyproject.toml, see override-pull below
 summary: Real-time KMB bus arrival TUI for Hong Kong
 description: |
   A terminal UI (curses) that shows live bus arrival ETAs for KMB buses in
@@ -24,4 +24,4 @@ parts:
       - libncursesw6    # curses needs the ncurses runtime library
     override-pull: |
       craftctl default
-      craftctl set version="$(git -C "$CRAFT_PART_SRC" describe --tags --always | sed 's/^v//')"
+      craftctl set version="$(grep -m1 '^version = ' "$CRAFT_PART_SRC/pyproject.toml" | sed -E 's/^version = "(.*)"/\1/')"
