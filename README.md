@@ -83,3 +83,19 @@ snapcraft export-login --snaps=kmb-bus-tui --channels=edge,beta,candidate,stable
 ```
 
 Add the contents of `exported-login.txt` as a GitHub Actions secret named `SNAPCRAFT_STORE_CREDENTIALS` (repo Settings → Secrets and variables → Actions → New repository secret), then delete the local file — it contains live store credentials.
+
+
+### start every Mo-Fr at 1800
+```
+crontab -e
+```
+
+```
+0 18 * * 1-5 /snap/bin/kmb-bus-tui
+```
+
+**Breakdown:**
+
+- `0 18` = 18:00 (6 PM)
+- `* *` = every month, every day of month
+- `1-5` = Monday through Friday (1=Mon, 5=Fri)
