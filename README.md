@@ -86,16 +86,54 @@ Add the contents of `exported-login.txt` as a GitHub Actions secret named `SNAPC
 
 
 ### start every Mo-Fr at 1800
-```
-crontab -e
+
+`kmb-bus-tui` is a terminal UI (built on `curses`), so it needs a real terminal to draw into. A plain cron job won't work for this: cron runs detached, with no TTY and none of your desktop session's environment (`DISPLAY`, `WAYLAND_DISPLAY`, `DBUS_SESSION_BUS_ADDRESS`), so there's nowhere for it to open a visible window — it can start silently in the background but you'll never see it.
+
+Instead, use a **systemd user timer**, which runs inside your logged-in graphical session and can open a terminal window for you.
+
+Create `~/.config/systemd/user/kmb-bus-tui.service`:
+```ini
+[Unit]
+Description=Launch KMB Bus TUI in a terminal window
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/ptyxis --new-window -x /snap/bin/kmb-bus-tui
 ```
 
+Replace `ptyxis` with whatever terminal emulator you use (e.g. `gnome-terminal --`, `konsole -e`, `xterm -e`) if it isn't your default.
+
+Create `~/.config/systemd/user/kmb-bus-tui.timer`:
+```ini
+[Unit]
+Description=Run KMB Bus TUI at 18:00 on weekdays
+
+[Timer]
+OnCalendar=Mon..Fri 18:00
+Persistent=false
+
+[Install]
+WantedBy=timers.target
 ```
-0 18 * * 1-5 /snap/bin/kmb-bus-tui
+
+Then enable it:
+```bash
+systemctl --user daemon-reload
+systemctl --user enable --now kmb-bus-tui.timer
 ```
 
 **Breakdown:**
 
-- `0 18` = 18:00 (6 PM)
-- `* *` = every month, every day of month
-- `1-5` = Monday through Friday (1=Mon, 5=Fri)
+- `OnCalendar=Mon..Fri 18:00` = 18:00 (6 PM), Monday through Friday
+- `Persistent=false` = skip a missed run (e.g. laptop asleep at 18:00) instead of firing late when the session resumes — set to `true` to catch up instead
+- `enable --now` both starts the timer immediately and re-registers it for every future login, so it survives reboots without needing anything re-run
+
+Useful commands:
+```bash
+systemctl --user list-timers kmb-bus-tui.timer   # see the next scheduled run
+systemctl --user start kmb-bus-tui.service       # trigger it manually, to test
+journalctl --user -u kmb-bus-tui.service         # view its run history
+systemctl --user disable --now kmb-bus-tui.timer # turn it off
+```
+
+Note this is a *user* timer, so it only runs while you're logged into that graphical session — which is what you want, since it needs a screen to open a window on.
